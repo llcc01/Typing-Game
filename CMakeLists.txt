@@ -24,11 +24,22 @@ project(typing-game
   VERSION 1.0.0
 )
 
-add_executable(typing-game src/main.cpp)
+set(GAME_SRC
+  src/main.cpp
+  src/db.cpp
+
+  src/models/user.cpp
+
+  src/view/player.cpp
+)
+
+add_executable(typing-game ${GAME_SRC})
 target_include_directories(typing-game PRIVATE src)
 
 target_link_libraries(typing-game
   PRIVATE ftxui::screen
   PRIVATE ftxui::dom
   PRIVATE ftxui::component # Not needed for this example.
+
+  sqlite_orm::sqlite_orm
 )
