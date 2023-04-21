@@ -17,6 +17,8 @@ endif()
 
 # ------------------------------------------------------------------------------
 
+find_package(SqliteOrm REQUIRED)
+
 project(typing-game
   LANGUAGES CXX
   VERSION 1.0.0
