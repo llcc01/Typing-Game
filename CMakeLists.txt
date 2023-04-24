@@ -27,10 +27,16 @@ project(typing-game
 set(GAME_SRC
   src/main.cpp
   src/db.cpp
+  src/md5.cpp
 
   src/models/user.cpp
 
   src/view/player.cpp
+  src/view/char.cpp
+  src/view/login.cpp
+  src/view/rank.cpp
+
+  src/view/ui.hpp
 )
 
 add_executable(typing-game ${GAME_SRC})
