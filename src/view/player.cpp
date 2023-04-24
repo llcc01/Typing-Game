@@ -6,13 +6,13 @@
 
 
 #include "view/char.hpp"
-
+#include "utils/string.h"
 
 
 namespace view::player
 {
 
-ui::Color getGaugeColor(float time)
+inline ui::Color getGaugeColor(float time)
 {
     if (time > 0.4f)
     {
@@ -46,7 +46,7 @@ void Loop(ui::ScreenInteractive& screen, Player& player)
     std::string word = "Test";
 
     auto uiInputWord = ui::Input(&wordInput, L"Enter a word");
-    auto uiCanvas = CharCanvas(ui::Dimension::Full().dimx, 48);
+    auto uiCanvas = CharCanvas(12 * 16, 48);
 
     auto component = ui::Container::Vertical({ uiInputWord });
 
@@ -69,11 +69,14 @@ void Loop(ui::ScreenInteractive& screen, Player& player)
     auto renderer = ui::Renderer(component, [&] {
         auto document = ui::vbox({
             ui::hbox({
-                ui::text("Level: " + std::to_string(player.GetLevel())) | size(ui::WIDTH, ui::EQUAL, 15),
+                ui::text(L"等级: " + std::to_wstring(player.GetLevel())) | size(ui::WIDTH, ui::EQUAL, 15),
                 ui::separator(),
-                ui::text("Score: " + std::to_string(player.GetScore())) | size(ui::WIDTH, ui::EQUAL, 15),
+                ui::text(L"经验: " + std::to_wstring(player.GetScore())) | size(ui::WIDTH, ui::EQUAL, 15),
                 ui::separator(),
-                ui::text("Pass: " + std::to_string(player.GetPassNum())) | size(ui::WIDTH, ui::EQUAL, 15),
+                ui::text(L"通关: " + std::to_wstring(player.GetPassNum())) | size(ui::WIDTH, ui::EQUAL, 15),
+                ui::separator(),
+                ui::text(L"姓名: " + utils::to_wide_string(player.GetName())) | size(ui::WIDTH, ui::EQUAL, 24),
+                ui::separator(),
             }),
 
             ui::separator(),
@@ -82,7 +85,7 @@ void Loop(ui::ScreenInteractive& screen, Player& player)
 
             ui::separator(),
 
-            ui::text("Word: "),
+            ui::text("单词: "),
             ui::canvas(uiCanvas),
 
             ui::separator(),
@@ -99,10 +102,11 @@ void Loop(ui::ScreenInteractive& screen, Player& player)
         {
             player.SetPassNum(player.GetPassNum() + 1);
             player.SetScore(player.GetScore() + 1);
+            player.SetLevel(player.GetLevel() + 1);
             init();
         }
 
-        document = document | ui::border | ftxui::size(ftxui::WIDTH, ftxui::LESS_THAN, 80);
+        document = document | ui::border;
         return document;
         });
 

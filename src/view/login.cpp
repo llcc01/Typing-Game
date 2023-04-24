@@ -25,7 +25,7 @@ void Loop(ui::ScreenInteractive& screen)
     auto uiInputPassword = ui::Input(&password, "请输入", passwordOption);
 
     int role = 0;
-    std::vector<std::wstring> roleList = { L"玩家", L"管理员" };
+    std::vector<std::wstring> roleList = { L"闯关者", L"出题者" };
     auto uiRadioRole = ui::Radiobox(&roleList, &role);
 
     auto buttonLogin = ui::Button(L"登录", [&] {

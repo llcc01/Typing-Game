@@ -1,7 +1,7 @@
 #include "db.hpp"
 
 
-#include "md5.h"
+#include "utils/md5.h"
 
 
 Database* Database::instance_ = nullptr;
@@ -98,7 +98,7 @@ uint64_t Database::CheckUser(const std::string& username, const std::string& pas
 namespace db
 {
 
-void FetchPlayers(std::vector<Player>& records, int sort, bool asc)
+void FetchUsers(std::vector<Player>& records, int sort, bool asc)
 {
     records.clear();
     switch (sort)
@@ -117,6 +117,28 @@ void FetchPlayers(std::vector<Player>& records, int sort, bool asc)
         break;
     case 4:
         records = Database::GetInstance().GetAll<Player>(&Player::GetPassNum, asc);
+        break;
+    default:
+        break;
+    }
+}
+
+void FetchUsers(std::vector<Maker>& records, int sort, bool asc)
+{
+    records.clear();
+    switch (sort)
+    {
+    case 0:
+        records = Database::GetInstance().GetAll<Maker>(&Maker::DBGetId, asc);
+        break;
+    case 1:
+        records = Database::GetInstance().GetAll<Maker>(&Maker::DBGetName, asc);
+        break;
+    case 2:
+        records = Database::GetInstance().GetAll<Maker>(&Maker::GetLevel, asc);
+        break;
+    case 3:
+        records = Database::GetInstance().GetAll<Maker>(&Maker::GetQuesNum, asc);
         break;
     default:
         break;

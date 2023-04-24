@@ -65,7 +65,8 @@ public:
 namespace db
 {
 
-void FetchPlayers(std::vector<Player>& records, int sort = 0, bool asc = true);
+void FetchUsers(std::vector<Player>& records, int sort = 0, bool asc = true);
+void FetchUsers(std::vector<Maker>& records, int sort = 0, bool asc = true);
 
 
 } // namespace db

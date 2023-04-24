@@ -20,16 +20,25 @@ public:
     }
     void DrawChar(uint16_t x, uint16_t y, char c, ftxui::Color color)
     {
-        int8_t offset = -'a' + 26;
+        uint8_t index = c;
         if (c < 'a' || c > 'z')
         {
             if (c < 'A' || c > 'Z')
             {
-                return;
+                index = 26 + 26;
             }
-            offset = -'A';
+            else
+            {
+                index -= 'A';
+            }
+
         }
-        uint8_t index = c + offset;
+        else
+        {
+            index -= 'a';
+            index += 26;
+        }
+
         for (uint8_t i = 0; i < CHAR_SIZE / 2; i++)
         {
             for (uint8_t j = 0; j < CHAR_SIZE / 8; j++)

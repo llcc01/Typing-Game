@@ -27,7 +27,9 @@ project(typing-game
 set(GAME_SRC
   src/main.cpp
   src/db.cpp
-  src/md5.cpp
+
+  src/utils/md5.cpp
+  src/utils/string.cpp
 
   src/models/user.cpp
 

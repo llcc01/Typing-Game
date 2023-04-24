@@ -18,7 +18,7 @@ int main(void)
 {
     auto screen = ftxui::ScreenInteractive::Fullscreen();
     Player player(0);
-    view::player::Loop(screen, player);
+    // view::player::Loop(screen, player);
     view::login::Loop(screen);
 
     view::rank::Loop(screen);

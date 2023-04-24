@@ -33,9 +33,9 @@ public:
 class Player: public User
 {
 private:
-    uint16_t passNum_;
-    uint32_t score_;
-    uint32_t level_;
+    uint16_t passNum_; // 通关数
+    uint32_t score_; // 经验值
+    uint32_t level_; // 等级
 public:
     Player() { passNum_ = 0; score_ = 0; level_ = 0; };
     Player(uint64_t id): User(id), passNum_(0), score_(0), level_(0) {};
