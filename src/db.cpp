@@ -33,21 +33,24 @@ void Database::DestroyInstance()
     }
 }
 
-uint64_t Database::AddUser(const std::string& username, const std::string& password, UserType type)
+namespace db
+{
+
+uint64_t AddUser(const std::string& username, const std::string& password, UserRole type)
 {
     std::string passwordHash = utils::md5(password);
     switch (type)
     {
-    case UserType::Player:
+    case UserRole::Player:
     {
         Player player(username, passwordHash);
-        return storage_.insert(player);
+        return Database::GetInstance().GetStorage().insert(player);
         break;
     }
-    case UserType::Maker:
+    case UserRole::Maker:
     {
         Maker maker(username, passwordHash);
-        return storage_.insert(maker);
+        return Database::GetInstance().GetStorage().insert(maker);
         break;
     }
     default:
@@ -57,14 +60,14 @@ uint64_t Database::AddUser(const std::string& username, const std::string& passw
     return 0;
 }
 
-uint64_t Database::CheckUser(const std::string& username, const std::string& password, UserType type)
+uint64_t CheckUser(const std::string& username, const std::string& password, UserRole type)
 {
     std::string passwordHash = utils::md5(password);
     switch (type)
     {
-    case UserType::Player:
+    case UserRole::Player:
     {
-        auto players = storage_.get_all<Player>(orm::where(orm::is_equal(&Player::DBGetName, username)));
+        auto players = Database::GetInstance().GetStorage().get_all<Player>(orm::where(orm::is_equal(&Player::DBGetName, username)));
         if (players.size() > 0 && players[0].GetPasswordHash() == passwordHash)
         {
             return players[0].GetId();
@@ -75,9 +78,9 @@ uint64_t Database::CheckUser(const std::string& username, const std::string& pas
         }
         break;
     }
-    case UserType::Maker:
+    case UserRole::Maker:
     {
-        auto makers = storage_.get_all<Maker>(orm::where(orm::is_equal(&Maker::DBGetName, username)));
+        auto makers = Database::GetInstance().GetStorage().get_all<Maker>(orm::where(orm::is_equal(&Maker::DBGetName, username)));
         if (makers.size() > 0 && makers[0].GetPasswordHash() == passwordHash)
         {
             return makers[0].GetId();
@@ -95,8 +98,27 @@ uint64_t Database::CheckUser(const std::string& username, const std::string& pas
     return 0;
 }
 
-namespace db
+template <class T>
+void GetUser(T& user, uint64_t id)
 {
+    auto users = Database::GetInstance().GetStorage().get_all<T>(orm::where(orm::is_equal(&T::DBGetId, id)));
+    if (users.size() > 0)
+    {
+        user = users[0];
+    }
+}
+
+template void GetUser(Player& user, uint64_t id);
+template void GetUser(Maker& user, uint64_t id);
+
+template <class T>
+void UpdateUser(const T& player)
+{
+    Database::GetInstance().GetStorage().update(player);
+}
+
+template void UpdateUser(const Player& player);
+template void UpdateUser(const Maker& player);
 
 void FetchUsers(std::vector<Player>& records, int sort, bool asc)
 {
@@ -143,6 +165,29 @@ void FetchUsers(std::vector<Maker>& records, int sort, bool asc)
     default:
         break;
     }
+}
+
+void AddWord(const std::string& word, uint32_t level, uint64_t makerId)
+{
+    Word newWord(word, level, makerId);
+    Database::GetInstance().GetStorage().insert(newWord);
+}
+
+void FetchWords(std::vector<Word>& records)
+{
+    records.clear();
+    records = Database::GetInstance().GetAll<Word>(&Word::GetWord, true);
+}
+
+size_t GetRandomWords(std::vector<std::string>& records, uint32_t level, size_t num)
+{
+    records.clear();
+    auto words = Database::GetInstance().GetStorage().get_all<Word>(orm::where(orm::is_equal(&Word::GetLevel, level)), orm::order_by(sqlite_orm::random()), orm::limit(num));
+    for (auto& word : words)
+    {
+        records.push_back(word.GetWord());
+    }
+    return words.size();
 }
 
 } // namespace db

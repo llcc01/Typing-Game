@@ -4,8 +4,10 @@
 namespace view::login
 {
 
-void Loop(ui::ScreenInteractive& screen)
+bool Loop(ui::ScreenInteractive& screen, uint64_t& uid, UserRole& urole)
 {
+    uid = 0;
+    urole = UserRole::None;
     std::string name;
     std::string password;
     uint64_t id = 0;
@@ -34,8 +36,8 @@ void Loop(ui::ScreenInteractive& screen)
             msg = "用户名或密码不能为空";
             return;
         }
-        
-        id = Database::GetInstance().CheckUser(name, password, UserType(role));
+
+        id = db::CheckUser(name, password, UserRole(role + 1));
         if (id == 0)
         {
             msg = "用户名或密码错误";
@@ -43,6 +45,8 @@ void Loop(ui::ScreenInteractive& screen)
         }
 
         msg = "登录成功";
+        uid = id;
+        urole = UserRole(role + 1);
         screen.ExitLoopClosure()();
 
         }, ui::ButtonOption::Animated(ui::Color::LightSkyBlue1));
@@ -53,7 +57,7 @@ void Loop(ui::ScreenInteractive& screen)
             return;
         }
 
-        id = Database::GetInstance().AddUser(name, password, UserType(role));
+        id = db::AddUser(name, password, UserRole(role + 1));
         if (id == 0)
         {
             msg = "用户名已存在";
@@ -63,8 +67,12 @@ void Loop(ui::ScreenInteractive& screen)
         msg = "注册成功";
 
         }, ui::ButtonOption::Animated(ui::Color::LightSeaGreen));
+    auto buttonRank = ui::Button(L"排行榜", [&] {
+        urole = UserRole::Rank;
+        screen.ExitLoopClosure()();
+        }, ui::ButtonOption::Animated(ui::Color::LightCoral));
 
-    auto component = ui::Container::Vertical({ uiInputName, uiInputPassword, uiRadioRole, buttonLogin, buttonSignup});
+    auto component = ui::Container::Vertical({ uiInputName, uiInputPassword, uiRadioRole, buttonLogin, buttonSignup, buttonRank });
 
 
     auto renderer = ui::Renderer(component, [&] {
@@ -95,6 +103,7 @@ void Loop(ui::ScreenInteractive& screen)
             ui::hbox({
                 buttonLogin->Render() | ui::center,
                 buttonSignup->Render() | ui::center,
+                buttonRank->Render() | ui::center,
             }) | ui::center,
 
             ui::text(msg) | ui::center | ui::color(ui::Color::Red),
@@ -108,6 +117,7 @@ void Loop(ui::ScreenInteractive& screen)
 
 
     screen.Loop(renderer);
+    return urole != UserRole::None;
 }
 
 } // namespace view::login

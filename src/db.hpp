@@ -8,6 +8,7 @@
 #include <sqlite_orm/sqlite_orm.h>
 
 #include "models/user.hpp"
+#include "models/word.hpp"
 
 namespace orm = sqlite_orm;
 
@@ -26,6 +27,12 @@ namespace orm = sqlite_orm;
         orm::make_column("password_hash", &Maker::DBGetPasswordHash, &Maker::DBSetPasswordHash),\
         orm::make_column("ques_num", &Maker::GetQuesNum, &Maker::SetQuesNum),\
         orm::make_column("level", &Maker::GetLevel, &Maker::SetLevel)\
+    ),\
+    orm::make_table("words",\
+        orm::make_column("id", &Word::GetId, &Word::SetId, orm::primary_key().autoincrement()),\
+        orm::make_column("word", &Word::GetWord, &Word::SetWord),\
+        orm::make_column("level", &Word::GetLevel, &Word::SetLevel),\
+        orm::make_column("maker_id", &Word::GetMakerId, &Word::SetMakerId)\
     )\
 )
 
@@ -52,8 +59,6 @@ public:
     static Database& GetInstance();
     static void DestroyInstance();
 
-    uint64_t AddUser(const std::string& username, const std::string& password, UserType type);
-    uint64_t CheckUser(const std::string& username, const std::string& password, UserType type);
     template <class T, class R>
     std::vector<T> GetAll(R funRef, bool asc = true) {
         return asc ?
@@ -65,9 +70,21 @@ public:
 namespace db
 {
 
+uint64_t AddUser(const std::string& username, const std::string& password, UserRole type);
+uint64_t CheckUser(const std::string& username, const std::string& password, UserRole type);
+
+template <class T>
+void GetUser(T& user, uint64_t id);
+
+template <class T>
+void UpdateUser(const T& user);
+
 void FetchUsers(std::vector<Player>& records, int sort = 0, bool asc = true);
 void FetchUsers(std::vector<Maker>& records, int sort = 0, bool asc = true);
 
+void AddWord(const std::string& word, uint32_t level, uint64_t makerId);
+void FetchWords(std::vector<Word>& records);
+size_t GetRandomWords(std::vector<std::string>& records, uint32_t level, size_t num);
 
 } // namespace db
 

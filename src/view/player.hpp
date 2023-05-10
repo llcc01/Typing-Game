@@ -8,7 +8,7 @@
 namespace view::player
 {
 
-    void Loop(ui::ScreenInteractive& screen, Player& user);
+void Loop(ui::ScreenInteractive& screen, Player& player);
 } // namespace view::player
 
 

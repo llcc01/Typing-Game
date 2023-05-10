@@ -32,13 +32,16 @@ set(GAME_SRC
   src/utils/string.cpp
 
   src/models/user.cpp
+  src/models/word.cpp
 
   src/view/player.cpp
   src/view/char.cpp
   src/view/login.cpp
   src/view/rank.cpp
+  src/view/maker.cpp
+  src/view/search.cpp
 
-  src/view/ui.hpp
+  src/view/ui.cpp
 )
 
 add_executable(typing-game ${GAME_SRC})

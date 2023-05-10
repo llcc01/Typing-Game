@@ -9,7 +9,6 @@ namespace view::rank
 
 void Loop(ui::ScreenInteractive& screen);
 
-
 }
 
 #endif

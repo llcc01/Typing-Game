@@ -11,7 +11,7 @@ void records2rows(const std::vector<Player>& players, std::vector<std::string>& 
     for (auto& player : players)
     {
         char row[128];
-        std::snprintf(row, sizeof(row), "%5.1d | %16.16s | %7.1d | %7.1d | %7.1d |",
+        std::snprintf(row, sizeof(row), "%5.1d │ %16.16s │ %7.1d │ %7.1d │ %7.1d │",
             player.GetId(), player.GetName().c_str(), player.GetScore(), player.GetLevel(), player.GetPassNum()
         );
         rows.push_back(row);
@@ -24,7 +24,7 @@ void records2rows(const std::vector<Maker>& makers, std::vector<std::string>& ro
     for (auto& maker : makers)
     {
         char row[128];
-        std::snprintf(row, sizeof(row), "%5.1d | %16.16s | %7.1d | %7.1d |",
+        std::snprintf(row, sizeof(row), "%5.1d │ %16.16s │ %7.1d │ %7.1d │",
             maker.GetId(), maker.GetName().c_str(), maker.GetLevel(), maker.GetQuesNum()
         );
         rows.push_back(row);

@@ -7,6 +7,7 @@
 
 #include "view/char.hpp"
 #include "utils/string.h"
+#include "db.hpp"
 
 
 namespace view::player
@@ -28,13 +29,18 @@ inline ui::Color getGaugeColor(float time)
     }
 }
 
-void timerThread(ui::ScreenInteractive& screen, bool& running)
+void timerThread(ui::ScreenInteractive& screen, bool& countdownRunning, int16_t& countdown)
 {
     for (;;)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        if (running)
+        if (countdownRunning)
         {
+            countdown--;
+            if (countdown <= 0)
+            {
+                countdownRunning = false;
+            }
             screen.PostEvent(ui::Event::Custom);
         }
     }
@@ -44,9 +50,12 @@ void Loop(ui::ScreenInteractive& screen, Player& player)
 {
     std::string wordInput;
     std::string word = "Test";
+    std::vector<std::string> wordList;
+
+
 
     auto uiInputWord = ui::Input(&wordInput, L"Enter a word");
-    auto uiCanvas = CharCanvas(12 * 16, 48);
+    auto uiCanvas = CharCanvas(12 * 16, 32);
 
     auto component = ui::Container::Vertical({ uiInputWord });
 
@@ -55,15 +64,24 @@ void Loop(ui::ScreenInteractive& screen, Player& player)
     int16_t countdown = time;
     bool countdownRunning = false;
 
-    auto init = [&] {
+    auto setNextWord = [&] {
         countdown = time;
         wordInput = "";
+        size_t num = db::GetRandomWords(wordList, player.GetLevel(), 1);
+        if (num == 0)
+        {
+            word = "NoWord";
+        }
+        else
+        {
+            word = wordList[0];
+        }
         uiCanvas.Clear();
         uiCanvas.DrawString(0, 0, word, ui::Color::Red);
         countdownRunning = true;
     };
 
-    init();
+    setNextWord();
 
 
     auto renderer = ui::Renderer(component, [&] {
@@ -103,7 +121,7 @@ void Loop(ui::ScreenInteractive& screen, Player& player)
             player.SetPassNum(player.GetPassNum() + 1);
             player.SetScore(player.GetScore() + 1);
             player.SetLevel(player.GetLevel() + 1);
-            init();
+            setNextWord();
         }
 
         document = document | ui::border;
@@ -113,13 +131,8 @@ void Loop(ui::ScreenInteractive& screen, Player& player)
     renderer |= ui::CatchEvent([&](ui::Event event) {
         if (event == ui::Event::Custom)
         {
-            if (countdown > 0)
+            if (countdown == 0)
             {
-                countdown--;
-            }
-            else
-            {
-                countdownRunning = false;
                 uiCanvas.Clear();
             }
             timePercent = (float)countdown / time;
@@ -127,7 +140,7 @@ void Loop(ui::ScreenInteractive& screen, Player& player)
         return false;
         });
 
-    std::thread t(timerThread, std::ref(screen), std::ref(countdownRunning));
+    std::thread t(timerThread, std::ref(screen), std::ref(countdownRunning), std::ref(countdown));
     t.detach();
 
     screen.Loop(renderer);

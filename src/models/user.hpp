@@ -3,10 +3,13 @@
 
 #include <string>
 
-enum class UserType
+enum class UserRole
 {
+    None,
     Player,
-    Maker
+    Maker,
+    Rank,
+    Search
 };
 
 
@@ -18,7 +21,7 @@ private:
     std::string passwordHash_;
 public:
     User() { id_ = 0; };
-    User(uint64_t id): id_(id) {};
+    User(uint64_t id) : id_(id) {};
 
     uint64_t GetId() const { return id_; };
     void SetId(uint64_t id) { id_ = id; };
@@ -30,7 +33,7 @@ public:
     void SetPasswordHash(const std::string& passwordHash) { passwordHash_ = passwordHash; };
 };
 
-class Player: public User
+class Player : public User
 {
 private:
     uint16_t passNum_; // 通关数
@@ -38,8 +41,8 @@ private:
     uint32_t level_; // 等级
 public:
     Player() { passNum_ = 0; score_ = 0; level_ = 0; };
-    Player(uint64_t id): User(id), passNum_(0), score_(0), level_(0) {};
-    Player(const std::string& name, const std::string& passwordHash): User(), passNum_(0), score_(0), level_(0)
+    Player(uint64_t id) : User(id), passNum_(0), score_(0), level_(0) {};
+    Player(const std::string& name, const std::string& passwordHash) : User(), passNum_(0), score_(0), level_(0)
     {
         SetName(name);
         SetPasswordHash(passwordHash);
@@ -63,15 +66,15 @@ public:
     void SetLevel(uint32_t level) { level_ = level; };
 };
 
-class Maker: public User
+class Maker : public User
 {
 private:
     uint16_t quesNum_;
     uint32_t level_;
 public:
     Maker() { quesNum_ = 0; level_ = 0; };
-    Maker(uint64_t id): User(id), quesNum_(0), level_(0) {};
-    Maker(const std::string& name, const std::string& passwordHash): User(), quesNum_(0), level_(0)
+    Maker(uint64_t id) : User(id), quesNum_(0), level_(0) {};
+    Maker(const std::string& name, const std::string& passwordHash) : User(), quesNum_(0), level_(0)
     {
         SetName(name);
         SetPasswordHash(passwordHash);
