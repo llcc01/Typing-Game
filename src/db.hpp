@@ -65,6 +65,12 @@ public:
             storage_.get_all<T>(orm::order_by(funRef).asc()) : storage_.get_all<T>(orm::order_by(funRef).desc());
     }
 
+    template <class T, class R, class C>
+    std::vector<T> GetAll(R funRef, bool asc = true, C condition) {
+        return asc ?
+            storage_.get_all<T>(orm::order_by(funRef).asc(), orm::where(condition)) : storage_.get_all<T>(orm::order_by(funRef).desc(), orm::where(condition));
+    }
+
 };
 
 namespace db

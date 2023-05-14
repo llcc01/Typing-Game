@@ -120,9 +120,44 @@ void UpdateUser(const T& player)
 template void UpdateUser(const Player& player);
 template void UpdateUser(const Maker& player);
 
-void FetchUsers(std::vector<Player>& records, int sort, bool asc)
+void FetchUsers(std::vector<Player>& records, int sort, bool asc, const std::vector<std::string>& filters)
 {
     records.clear();
+
+    uint64_t uid = 0;
+    std::string name = "";
+    uint32_t score = 0;
+    uint32_t level = 0;
+    uint32_t passNum = 0;
+    try
+    {
+        if (filters[0] != "")
+        {
+            uid = std::stoull(filters[0]);
+        }
+        if (filters[1] != "")
+        {
+            name = filters[1];
+        }
+        if (filters[2] != "")
+        {
+            score = std::stoul(filters[2]);
+        }
+        if (filters[3] != "")
+        {
+            level = std::stoul(filters[3]);
+        }
+        if (filters[4] != "")
+        {
+            passNum = std::stoul(filters[4]);
+        }
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return;
+    }
+
     switch (sort)
     {
     case 0:
@@ -142,6 +177,36 @@ void FetchUsers(std::vector<Player>& records, int sort, bool asc)
         break;
     default:
         break;
+    }
+
+    for (auto it = records.begin(); it != records.end();)
+    {
+        if (uid != 0 && it->GetId() != uid)
+        {
+            it = records.erase(it);
+            continue;
+        }
+        if (name != "" && it->GetName() != name)
+        {
+            it = records.erase(it);
+            continue;
+        }
+        if (score != 0 && it->GetScore() != score)
+        {
+            it = records.erase(it);
+            continue;
+        }
+        if (level != 0 && it->GetLevel() != level)
+        {
+            it = records.erase(it);
+            continue;
+        }
+        if (passNum != 0 && it->GetPassNum() != passNum)
+        {
+            it = records.erase(it);
+            continue;
+        }
+        ++it;
     }
 }
 

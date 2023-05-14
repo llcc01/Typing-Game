@@ -23,23 +23,32 @@ int main(void)
     UserRole urole = UserRole::None;
     while (view::login::Loop(screen, uid, urole))
     {
-        if (urole == UserRole::Player)
+        switch (urole)
+        {
+        case UserRole::Player:
         {
             Player player;
             db::GetUser(player, uid);
             view::player::Loop(screen, player);
             db::UpdateUser(player);
+            break;
         }
-        else if (urole == UserRole::Maker)
+        case UserRole::Maker:
         {
             Maker maker(uid);
             db::GetUser(maker, uid);
             view::maker::Loop(screen, maker);
             db::UpdateUser(maker);
+            break;
         }
-        else if (urole == UserRole::Rank)
+        case UserRole::Rank:
         {
             view::rank::Loop(screen);
+            break;
+        }
+
+        default:
+            break;
         }
     }
 

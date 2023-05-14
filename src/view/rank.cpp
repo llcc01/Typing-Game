@@ -42,6 +42,11 @@ void Loop(ui::ScreenInteractive& screen)
     int rowSelected = 0;
     int tabSelected = 0;
     int lastTabSelected = 0;
+    std::string filterId = "";
+    std::string filterName = "";
+    std::string filter3 = "";
+    std::string filter4 = "";
+    std::string filter5 = "";
 
     auto fetchData = [&]() {
         if (tabSelected == 0)
