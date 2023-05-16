@@ -181,27 +181,27 @@ void FetchUsers(std::vector<Player>& records, int sort, bool asc, const std::vec
 
     for (auto it = records.begin(); it != records.end();)
     {
-        if (uid != 0 && it->GetId() != uid)
+        if (filters[0] != "" && it->GetId() != uid)
         {
             it = records.erase(it);
             continue;
         }
-        if (name != "" && it->GetName() != name)
+        if (filters[1] != "" && it->GetName().find(name) == std::string::npos)
         {
             it = records.erase(it);
             continue;
         }
-        if (score != 0 && it->GetScore() != score)
+        if (filters[2] != "" && it->GetScore() != score)
         {
             it = records.erase(it);
             continue;
         }
-        if (level != 0 && it->GetLevel() != level)
+        if (filters[3] != "" && it->GetLevel() != level)
         {
             it = records.erase(it);
             continue;
         }
-        if (passNum != 0 && it->GetPassNum() != passNum)
+        if (filters[4] != "" && it->GetPassNum() != passNum)
         {
             it = records.erase(it);
             continue;
@@ -210,9 +210,39 @@ void FetchUsers(std::vector<Player>& records, int sort, bool asc, const std::vec
     }
 }
 
-void FetchUsers(std::vector<Maker>& records, int sort, bool asc)
+void FetchUsers(std::vector<Maker>& records, int sort, bool asc, const std::vector<std::string>& filters)
 {
     records.clear();
+
+    uint64_t uid = 0;
+    std::string name = "";
+    uint32_t level = 0;
+    uint32_t quesNum = 0;
+    try
+    {
+        if (filters[0] != "")
+        {
+            uid = std::stoull(filters[0]);
+        }
+        if (filters[1] != "")
+        {
+            name = filters[1];
+        }
+        if (filters[2] != "")
+        {
+            level = std::stoul(filters[2]);
+        }
+        if (filters[3] != "")
+        {
+            quesNum = std::stoul(filters[3]);
+        }
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return;
+    }
+
     switch (sort)
     {
     case 0:
@@ -230,12 +260,42 @@ void FetchUsers(std::vector<Maker>& records, int sort, bool asc)
     default:
         break;
     }
+
+    for (auto it = records.begin(); it != records.end();)
+    {
+        if (filters[0] != "" && it->GetId() != uid)
+        {
+            it = records.erase(it);
+            continue;
+        }
+        if (filters[1] != "" && it->GetName().find(name) == std::string::npos)
+        {
+            it = records.erase(it);
+            continue;
+        }
+        if (filters[2] != "" && it->GetLevel() != level)
+        {
+            it = records.erase(it);
+            continue;
+        }
+        if (filters[3] != "" && it->GetQuesNum() != quesNum)
+        {
+            it = records.erase(it);
+            continue;
+        }
+        ++it;
+    }
 }
 
 void AddWord(const std::string& word, uint32_t level, uint64_t makerId)
 {
     Word newWord(word, level, makerId);
     Database::GetInstance().GetStorage().insert(newWord);
+}
+
+void DeleteWord(uint64_t id)
+{
+    Database::GetInstance().GetStorage().remove<Word>(id);
 }
 
 void FetchWords(std::vector<Word>& records)

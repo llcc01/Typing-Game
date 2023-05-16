@@ -48,15 +48,23 @@ void Loop(ui::ScreenInteractive& screen)
     std::string filter4 = "";
     std::string filter5 = "";
 
+    auto filterIdInput = ui::Input(&filterId, L"筛选");
+    auto filterNameInput = ui::Input(&filterName, L"筛选");
+    auto filter3Input = ui::Input(&filter3, L"筛选");
+    auto filter4Input = ui::Input(&filter4, L"筛选");
+    auto filter5Input = ui::Input(&filter5, L"筛选");
+    std::vector<std::string> filterStr = { filterId, filterName, filter3, filter4, filter5 };
+
     auto fetchData = [&]() {
+
         if (tabSelected == 0)
         {
-            db::FetchUsers(players, sort.first, sort.second);
+            db::FetchUsers(players, sort.first, sort.second, filterStr);
             records2rows(players, rows);
         }
         else
         {
-            db::FetchUsers(makers, sort.first, sort.second);
+            db::FetchUsers(makers, sort.first, sort.second, filterStr);
             records2rows(makers, rows);
         }
     };
@@ -69,47 +77,61 @@ void Loop(ui::ScreenInteractive& screen)
     auto tbody = ui::Menu(&rows, &rowSelected);
 
     // container
+
+    auto filterContainer = ui::Container::Horizontal({
+        filterIdInput,
+        filterNameInput,
+        filter3Input,
+        filter4Input,
+        filter5Input,
+        });
+
     auto container = ui::Container::Horizontal({
-            tabToggle,
-            tbody
+        tabToggle,
+        filterContainer,
+        tbody,
         });
 
     container |= ui::CatchEvent([&](ui::Event e) {
-        const std::vector<std::string> playerKeymap = {
+        if (tbody->Focused())
+        {
+            const std::vector<std::string> playerKeymap = {
             "i",
             "n",
             "s",
             "l",
             "p",
-        };
-        const std::vector<std::string> makerKeymap = {
-            "i",
-            "n",
-            "l",
-            "q",
-        };
-        auto& keymap = (tabSelected == 0) ? playerKeymap : makerKeymap;
+            };
+            const std::vector<std::string> makerKeymap = {
+                "i",
+                "n",
+                "l",
+                "q",
+            };
+            auto& keymap = (tabSelected == 0) ? playerKeymap : makerKeymap;
 
-        for (size_t i = 0;i < keymap.size();i++)
-        {
-            if (e.input() != keymap[i])
+            for (size_t i = 0;i < keymap.size();i++)
             {
-                continue;
-            }
-            if (i == sort.first)
-            {
-                sort.second = !sort.second;
-            }
-            else
-            {
-                sort.first = i;
-                sort.second = true;
-            }
+                if (e.input() != keymap[i])
+                {
+                    continue;
+                }
+                if (i == sort.first)
+                {
+                    sort.second = !sort.second;
+                }
+                else
+                {
+                    sort.first = i;
+                    sort.second = true;
+                }
 
-            fetchData();
+                fetchData();
 
-            return true;
+                return true;
+            }
         }
+
         return false;
 
         });
@@ -142,17 +164,82 @@ void Loop(ui::ScreenInteractive& screen)
             theadCols.push_back(ui::separator());
         }
 
-        if(lastTabSelected != tabSelected)
+        if (lastTabSelected != tabSelected)
         {
             lastTabSelected = tabSelected;
             rowSelected = 0;
             fetchData();
         }
 
+        bool needFetch = false;
+        if (filterId != filterStr[0])
+        {
+            filterStr[0] = filterId;
+            needFetch = true;
+        }
+        if (filterName != filterStr[1])
+        {
+            filterStr[1] = filterName;
+            needFetch = true;
+        }
+        if (filter3 != filterStr[2])
+        {
+            filterStr[2] = filter3;
+            needFetch = true;
+        }
+        if (filter4 != filterStr[3])
+        {
+            filterStr[3] = filter4;
+            needFetch = true;
+        }
+        if (filter5 != filterStr[4])
+        {
+            filterStr[4] = filter5;
+            needFetch = true;
+        }
+        if (needFetch)
+        {
+            fetchData();
+        }
+
+        ftxui::Element filter;
+        if (tabSelected == 0)
+        {
+            filter = ui::hbox({
+               filterIdInput->Render() | ui::size(ui::WIDTH, ui::EQUAL, playerCols[0].second),
+               ui::separator(),
+               filterNameInput->Render() | ui::size(ui::WIDTH, ui::EQUAL, playerCols[1].second),
+               ui::separator(),
+               filter3Input->Render() | ui::size(ui::WIDTH, ui::EQUAL, playerCols[2].second),
+               ui::separator(),
+               filter4Input->Render() | ui::size(ui::WIDTH, ui::EQUAL, playerCols[3].second),
+               ui::separator(),
+               filter5Input->Render() | ui::size(ui::WIDTH, ui::EQUAL, playerCols[4].second),
+               ui::separator(),
+                });
+
+
+        }
+        else
+        {
+            filter = ui::hbox({
+               filterIdInput->Render() | ui::size(ui::WIDTH, ui::EQUAL, makerCols[0].second),
+               ui::separator(),
+               filterNameInput->Render() | ui::size(ui::WIDTH, ui::EQUAL, makerCols[1].second),
+               ui::separator(),
+               filter3Input->Render() | ui::size(ui::WIDTH, ui::EQUAL, makerCols[2].second),
+               ui::separator(),
+               filter4Input->Render() | ui::size(ui::WIDTH, ui::EQUAL, makerCols[3].second),
+               ui::separator(),
+                });
+        }
+
         auto table = ui::vbox({
-            ui::hbox(theadCols),
-            ui::separator(),
-            tbody->Render() | ui::vscroll_indicator | ui::frame | ui::size(ui::HEIGHT, ui::LESS_THAN, 10)
+                        ui::hbox(theadCols),
+                        ui::separator(),
+                        filter,
+                        ui::separator(),
+                        tbody->Render() | ui::vscroll_indicator | ui::frame | ui::size(ui::HEIGHT, ui::LESS_THAN, 10)
             });
 
         auto document = ui::vbox({

@@ -39,7 +39,6 @@ set(GAME_SRC
   src/view/login.cpp
   src/view/rank.cpp
   src/view/maker.cpp
-  src/view/search.cpp
 
   src/view/ui.cpp
 )

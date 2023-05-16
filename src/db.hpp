@@ -66,7 +66,7 @@ public:
     }
 
     template <class T, class R, class C>
-    std::vector<T> GetAll(R funRef, bool asc = true, C condition) {
+    std::vector<T> GetAll(R funRef, C condition, bool asc = true) {
         return asc ?
             storage_.get_all<T>(orm::order_by(funRef).asc(), orm::where(condition)) : storage_.get_all<T>(orm::order_by(funRef).desc(), orm::where(condition));
     }
@@ -74,7 +74,7 @@ public:
 };
 
 namespace db
-{
+{ 
 
 uint64_t AddUser(const std::string& username, const std::string& password, UserRole type);
 uint64_t CheckUser(const std::string& username, const std::string& password, UserRole type);
@@ -85,10 +85,11 @@ void GetUser(T& user, uint64_t id);
 template <class T>
 void UpdateUser(const T& user);
 
-void FetchUsers(std::vector<Player>& records, int sort = 0, bool asc = true);
-void FetchUsers(std::vector<Maker>& records, int sort = 0, bool asc = true);
+void FetchUsers(std::vector<Player>& records, int sort, bool asc, const std::vector<std::string>& filters);
+void FetchUsers(std::vector<Maker>& records, int sort, bool asc, const std::vector<std::string>& filters);
 
 void AddWord(const std::string& word, uint32_t level, uint64_t makerId);
+void DeleteWord(uint64_t id);
 void FetchWords(std::vector<Word>& records);
 size_t GetRandomWords(std::vector<std::string>& records, uint32_t level, size_t num);
 

@@ -36,6 +36,19 @@ void Loop(ui::ScreenInteractive& screen, Maker& maker)
 
     auto tbody = ui::Menu(&rows, &rowSelected);
 
+    tbody |= ui::CatchEvent([&](ui::Event e) {
+        if (e == ui::Event::Delete)
+        {
+            if (rowSelected >= 0 && rowSelected < words.size())
+            {
+                db::DeleteWord(words[rowSelected].GetId());
+                fetchData();
+            }
+            return true;
+        }
+        return false;
+        });
+
     ui::InputOption wordOption;
     wordOption.on_enter = [&] {
         screen.PostEvent(ui::Event::Tab);
