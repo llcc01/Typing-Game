@@ -10,6 +10,8 @@
 #include "db.hpp"
 
 
+#define COUNTDOWN_MAX 200
+
 namespace view::player
 {
 
@@ -29,9 +31,11 @@ inline ui::Color getGaugeColor(float time)
     }
 }
 
-void timerThread(ui::ScreenInteractive& screen, bool& countdownRunning, int16_t& countdown)
+bool timerRunning = false;
+
+void timerThread(ui::ScreenInteractive& screen, bool& countdownRunning, int16_t& countdown, bool& countRunning, int16_t& count)
 {
-    for (;;)
+    while(timerRunning)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         if (countdownRunning)
@@ -40,7 +44,13 @@ void timerThread(ui::ScreenInteractive& screen, bool& countdownRunning, int16_t&
             if (countdown <= 0)
             {
                 countdownRunning = false;
+                countRunning = true;
             }
+            screen.PostEvent(ui::Event::Custom);
+        }
+        if (countRunning)
+        {
+            count++;
             screen.PostEvent(ui::Event::Custom);
         }
     }
@@ -60,14 +70,21 @@ void Loop(ui::ScreenInteractive& screen, Player& player)
     auto component = ui::Container::Vertical({ uiInputWord });
 
     float timePercent = 1.0f;
-    uint16_t time = 100;
+    int16_t time = COUNTDOWN_MAX;
     int16_t countdown = time;
     bool countdownRunning = false;
+    int16_t count = 0;
+    bool countRunning = false;
 
     auto setNextWord = [&] {
+        time = COUNTDOWN_MAX - player.GetPassNum() * 10;
+        if (time < 10)
+        {
+            time = 10;
+        }
         countdown = time;
         wordInput = "";
-        size_t num = db::GetRandomWords(wordList, player.GetLevel(), 1);
+        size_t num = db::GetRandomWords(wordList, player.GetPassNum(), 1);
         if (num == 0)
         {
             word = "NoWord";
@@ -79,12 +96,17 @@ void Loop(ui::ScreenInteractive& screen, Player& player)
         uiCanvas.Clear();
         uiCanvas.DrawString(0, 0, word, ui::Color::Red);
         countdownRunning = true;
+        countRunning = false;
+        count = 0;
     };
 
     setNextWord();
 
 
     auto renderer = ui::Renderer(component, [&] {
+        char countDownStr[10];
+        snprintf(countDownStr, sizeof(countDownStr), "%.1fs", countdown / 10.0);
+
         auto document = ui::vbox({
             ui::hbox({
                 ui::text(L"等级: " + std::to_wstring(player.GetLevel())) | size(ui::WIDTH, ui::EQUAL, 15),
@@ -95,11 +117,17 @@ void Loop(ui::ScreenInteractive& screen, Player& player)
                 ui::separator(),
                 ui::text(L"姓名: " + utils::to_wide_string(player.GetName())) | size(ui::WIDTH, ui::EQUAL, 24),
                 ui::separator(),
+                ui::text(L"用时: " + std::to_wstring(count/10) + L"s") | size(ui::WIDTH, ui::EQUAL, 15),
+                ui::separator(),
             }),
 
             ui::separator(),
 
-            ui::gauge(timePercent) | ui::color(getGaugeColor(timePercent)),
+            ui::hbox({
+                ui::text(countDownStr),
+                ui::separator(),
+                ui::gauge(timePercent) | ui::color(getGaugeColor(timePercent)),
+            }),
 
             ui::separator(),
 
@@ -107,7 +135,6 @@ void Loop(ui::ScreenInteractive& screen, Player& player)
             ui::canvas(uiCanvas),
 
             ui::separator(),
-
 
             uiInputWord->Render(),
             });
@@ -119,8 +146,8 @@ void Loop(ui::ScreenInteractive& screen, Player& player)
         else if (wordInput == word)
         {
             player.SetPassNum(player.GetPassNum() + 1);
-            player.SetScore(player.GetScore() + 1);
-            player.SetLevel(player.GetLevel() + 1);
+            player.SetScore(player.GetScore() + player.GetPassNum()*30/count);
+            player.SetLevel(player.GetScore() / 100);
             setNextWord();
         }
 
@@ -140,11 +167,15 @@ void Loop(ui::ScreenInteractive& screen, Player& player)
         return false;
         });
 
-    std::thread t(timerThread, std::ref(screen), std::ref(countdownRunning), std::ref(countdown));
+    timerRunning = true;
+    std::thread t(timerThread,
+        std::ref(screen),
+        std::ref(countdownRunning), std::ref(countdown),
+        std::ref(countRunning), std::ref(count));
     t.detach();
 
     screen.Loop(renderer);
-
+    timerRunning = false;
 }
 
 
