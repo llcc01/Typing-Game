@@ -29,9 +29,11 @@ inline ui::Color getGaugeColor(float time)
     }
 }
 
+bool timerRunning = false;
+
 void timerThread(ui::ScreenInteractive& screen, bool& countdownRunning, int16_t& countdown)
 {
-    for (;;)
+    while(timerRunning)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         if (countdownRunning)
@@ -140,10 +142,12 @@ void Loop(ui::ScreenInteractive& screen, Player& player)
         return false;
         });
 
+    timerRunning = true;
     std::thread t(timerThread, std::ref(screen), std::ref(countdownRunning), std::ref(countdown));
     t.detach();
 
     screen.Loop(renderer);
+    timerRunning = false;
 
 }
 
