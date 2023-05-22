@@ -97,7 +97,7 @@ void Loop(ui::ScreenInteractive& screen, Maker& maker)
         word = "";
         level = "";
         maker.SetQuesNum(maker.GetQuesNum() + 1);
-        maker.SetLevel(maker.GetQuesNum() / 10 + 1);
+        maker.SetLevel(maker.GetQuesNum() / 10);
 
         }, ui::ButtonOption::Animated(ui::Color::LightSkyBlue1));
     auto buttonReturn = ui::Button(L"返回", [&] {

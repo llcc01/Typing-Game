@@ -146,7 +146,7 @@ void Loop(ui::ScreenInteractive& screen, Player& player)
         else if (wordInput == word)
         {
             player.SetPassNum(player.GetPassNum() + 1);
-            player.SetScore(player.GetScore() + player.GetPassNum()*30/count);
+            player.SetScore(player.GetScore() + player.GetPassNum()*300/count);
             player.SetLevel(player.GetScore() / 100);
             setNextWord();
         }
