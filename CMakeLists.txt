@@ -24,9 +24,9 @@ project(typing-game
   VERSION 1.0.0
 )
 
-set(GAME_SRC
-  src/main.cpp
-  src/db.cpp
+
+set(CLIENT_SRC
+  src/client.cpp
 
   src/utils/md5.cpp
   src/utils/string.cpp
@@ -41,15 +41,41 @@ set(GAME_SRC
   src/view/maker.cpp
 
   src/view/ui.cpp
+
+  src/rpc/rpc.cpp
+  src/rpc/client.cpp
 )
 
-add_executable(typing-game ${GAME_SRC})
-target_include_directories(typing-game PRIVATE src)
+set(SERVER_SRC
+  src/server.cpp
+  src/db.cpp
 
-target_link_libraries(typing-game
+  src/utils/md5.cpp
+  src/utils/string.cpp
+
+  src/models/user.cpp
+  src/models/word.cpp
+
+  src/rpc/rpc.cpp
+  src/rpc/server.cpp
+)
+
+add_executable(typing-game-client ${CLIENT_SRC})
+target_include_directories(typing-game-client PRIVATE src)
+
+target_link_libraries(typing-game-client
   PRIVATE ftxui::screen
   PRIVATE ftxui::dom
-  PRIVATE ftxui::component # Not needed for this example.
+  PRIVATE ftxui::component
 
+  ws2_32
+)
+
+add_executable(typing-game-server ${SERVER_SRC})
+target_include_directories(typing-game-server PRIVATE src)
+
+target_link_libraries(typing-game-server
   sqlite_orm::sqlite_orm
+
+  ws2_32
 )

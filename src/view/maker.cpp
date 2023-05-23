@@ -1,8 +1,11 @@
 #include "view/maker.hpp"
-#include "db.hpp"
+// #include "db.hpp"
+#include "rpc/client.hpp"
 
 namespace view::maker
 {
+
+using namespace rpc::client;
 
 void records2rows(const std::vector<Word>& words, std::vector<std::string>& rows)
 {

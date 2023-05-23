@@ -2,7 +2,6 @@
 #define __RANK_HPP__
 
 #include "view/ui.hpp"
-#include "db.hpp"
 
 namespace view::rank
 {

@@ -27,6 +27,18 @@ public:
 
     uint64_t GetMakerId() const { return makerId_; };
     void SetMakerId(uint64_t makerId) { makerId_ = makerId; };
+
+    void FromString(const std::string& str)
+    {
+        std::string::size_type pos = str.find('\t');
+        id_ = std::stoull(str.substr(0, pos));
+        std::string::size_type pos2 = str.find('\t', pos + 1);
+        word_ = str.substr(pos + 1, pos2 - pos - 1);
+        std::string::size_type pos3 = str.find('\t', pos2 + 1);
+        level_ = std::stoi(str.substr(pos2 + 1, pos3 - pos2 - 1));
+        makerId_ = std::stoull(str.substr(pos3 + 1));
+    };
+    std::string ToString() const { return std::to_string(id_) + "\t" + word_ + "\t" + std::to_string(level_) + "\t" + std::to_string(makerId_); };
 };
 
 

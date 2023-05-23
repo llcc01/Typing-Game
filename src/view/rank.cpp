@@ -1,9 +1,11 @@
 #include "view/rank.hpp"
-
-
+// #include "db.hpp"
+#include "rpc/client.hpp"
 
 namespace view::rank
 {
+
+using namespace rpc::client;
 
 void records2rows(const std::vector<Player>& players, std::vector<std::string>& rows)
 {

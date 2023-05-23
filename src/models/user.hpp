@@ -12,6 +12,7 @@ enum class UserRole
     Search
 };
 
+const std::string UserRoleStr[] = { "None", "Player", "Maker", "Rank", "Search" };
 
 class User
 {
@@ -31,6 +32,8 @@ public:
 
     std::string GetPasswordHash() const { return passwordHash_; };
     void SetPasswordHash(const std::string& passwordHash) { passwordHash_ = passwordHash; };
+
+    virtual void FromString(const std::string& str) = 0;
 };
 
 class Player : public User
@@ -64,6 +67,23 @@ public:
 
     uint32_t GetLevel() const { return level_; };
     void SetLevel(uint32_t level) { level_ = level; };
+
+    void FromString(const std::string& str)
+    {
+        std::string::size_type pos = str.find('\t');
+        SetId(std::stoull(str.substr(0, pos)));
+        std::string::size_type pos2 = str.find('\t', pos + 1);
+        SetName(str.substr(pos + 1, pos2 - pos - 1));
+        std::string::size_type pos3 = str.find('\t', pos2 + 1);
+        SetPasswordHash(str.substr(pos2 + 1, pos3 - pos2 - 1));
+        std::string::size_type pos4 = str.find('\t', pos3 + 1);
+        SetPassNum(std::stoi(str.substr(pos3 + 1, pos4 - pos3 - 1)));
+        std::string::size_type pos5 = str.find('\t', pos4 + 1);
+        SetScore(std::stoi(str.substr(pos4 + 1, pos5 - pos4 - 1)));
+        SetLevel(std::stoi(str.substr(pos5 + 1)));
+    };
+    std::string ToString() const { return std::to_string(GetId()) + "\t" + GetName() + "\t" + GetPasswordHash() + "\t" + std::to_string(GetPassNum()) + "\t" + std::to_string(GetScore()) + "\t" + std::to_string(GetLevel()); };
+
 };
 
 class Maker : public User
@@ -93,6 +113,20 @@ public:
 
     uint32_t GetLevel() const { return level_; };
     void SetLevel(uint32_t level) { level_ = level; };
+
+    void FromString(const std::string& str)
+    {
+        std::string::size_type pos = str.find('\t');
+        SetId(std::stoull(str.substr(0, pos)));
+        std::string::size_type pos2 = str.find('\t', pos + 1);
+        SetName(str.substr(pos + 1, pos2 - pos - 1));
+        std::string::size_type pos3 = str.find('\t', pos2 + 1);
+        SetPasswordHash(str.substr(pos2 + 1, pos3 - pos2 - 1));
+        std::string::size_type pos4 = str.find('\t', pos3 + 1);
+        SetQuesNum(std::stoi(str.substr(pos3 + 1, pos4 - pos3 - 1)));
+        SetLevel(std::stoi(str.substr(pos4 + 1)));
+    };
+    std::string ToString() const { return std::to_string(GetId()) + "\t" + GetName() + "\t" + GetPasswordHash() + "\t" + std::to_string(GetQuesNum()) + "\t" + std::to_string(GetLevel()); };
 };
 
 #endif

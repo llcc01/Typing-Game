@@ -1,8 +1,11 @@
 #include "view/login.hpp"
-#include "db.hpp"
+// #include "db.hpp"
+#include "rpc/client.hpp"
 
 namespace view::login
 {
+
+using namespace rpc::client;
 
 bool Loop(ui::ScreenInteractive& screen, uint64_t& uid, UserRole& urole)
 {

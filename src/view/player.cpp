@@ -7,13 +7,16 @@
 
 #include "view/char.hpp"
 #include "utils/string.h"
-#include "db.hpp"
+// #include "db.hpp"
+#include "rpc/client.hpp"
 
 
 #define COUNTDOWN_MAX 200
 
 namespace view::player
 {
+
+using namespace rpc::client;
 
 inline ui::Color getGaugeColor(float time)
 {
