@@ -28,11 +28,12 @@ uint8_t request(const std::string& ipAdrr, uint16_t port, const std::string& req
         char recvdata[256];
         int num = recv(clientSocket, recvdata, 256, 0);
         if (num > 0) {
-            res += std::string(recvdata, num);
             if (recvdata[num - 1] == '\0')
             {
+                res += std::string(recvdata, num - 1);
                 break;
             }
+            res += std::string(recvdata, num);
         }
     }
     closesocket(clientSocket);

@@ -59,6 +59,10 @@ void checkUser(const std::string& req, std::string& res)
     {
         id = db::CheckUser(username, password, UserRole::Maker);
     }
+    else
+    {
+        std::cout << "Unknown user type: " << type << std::endl;
+    }
     res = std::to_string(id);
 }
 
@@ -191,12 +195,14 @@ void handle(const SOCKET clientSocket)
     {
         char recvdata[256];
         int num = recv(clientSocket, recvdata, 256, 0);
-        if (num > 0) {
-            req += std::string(recvdata, num);
+        if (num > 0)
+        {
             if (recvdata[num - 1] == '\0')
             {
+                req += std::string(recvdata, num - 1);
                 break;
             }
+            req += std::string(recvdata, num);
         }
     }
     std::string res;
@@ -244,7 +250,7 @@ void handle(const SOCKET clientSocket)
         std::cout << "Unknown action: " << action << std::endl;
     }
 
-    std::cout << "res: " <<res << std::endl;
+    std::cout << "res: " << res << std::endl;
     response(clientSocket, res);
     closesocket(clientSocket);
 }
