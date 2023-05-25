@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
+#include <mutex>
 #include "models/user.hpp"
 #include "models/word.hpp"
 
@@ -29,6 +30,55 @@ size_t GetRandomWords(std::vector<std::string>& records, uint32_t level, size_t 
 
 } // namespace db
 
+namespace rpc::client
+{
+class Session
+{
+private:
+    UserRole role_ = UserRole::None;
+    uint64_t uid_ = 0;
+
+private:
+    Session() {}
+    ~Session() {}
+    Session(const Session&);
+    const Session& operator=(const Session&);
+
+    static Session* instance_;
+    static std::mutex mutex_;
+
+public:
+    static Session& GetInstance();
+    static void DestroyInstance();
+
+    static void Start(UserRole role, uint64_t uid)
+    {
+        Session& session = GetInstance();
+        session.role_ = role;
+        session.uid_ = uid;
+    }
+
+    static void End()
+    {
+        Session& session = GetInstance();
+        session.role_ = UserRole::None;
+        session.uid_ = 0;
+    }
+
+    static uint64_t GetUid()
+    {
+        Session& session = GetInstance();
+        return session.uid_;
+    }
+
+    static UserRole GetRole()
+    {
+        Session& session = GetInstance();
+        return session.role_;
+    }
+};
+
+} // namespace rpc::client
 
 
 #endif

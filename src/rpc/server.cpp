@@ -2,8 +2,10 @@
 #include <winsock2.h>
 #include <thread>
 #include <iostream>
+#include <map>
 
 #include "db.hpp"
+#include "rpc/rpc.hpp"
 
 namespace rpc::server
 {
@@ -14,24 +16,11 @@ uint8_t response(const SOCKET& clientSocket, const std::string& res)
     return 0;
 }
 
-std::string getParam(const std::string& req, const std::string& paramName)
+void addUser(const Request& req, std::string& res)
 {
-    std::string::size_type pos = req.find(paramName + "=");
-    if (pos != std::string::npos)
-    {
-        std::string value = req.substr(pos + paramName.size() + 1, req.find("&", pos) - pos - paramName.size() - 1);
-        std::cout << "getParam: " << paramName << "=" << value << std::endl;
-        return value;
-    }
-    return "";
-}
-
-
-void addUser(const std::string& req, std::string& res)
-{
-    std::string username = getParam(req, "username");
-    std::string password = getParam(req, "password");
-    std::string type = getParam(req, "type");
+    std::string username = req.GetParam("username");
+    std::string password = req.GetParam("password");
+    std::string type = req.GetParam("type");
     uint64_t id = 0;
     if (type == "Player")
     {
@@ -45,11 +34,11 @@ void addUser(const std::string& req, std::string& res)
 
 }
 
-void checkUser(const std::string& req, std::string& res)
+void checkUser(const Request& req, std::string& res)
 {
-    std::string username = getParam(req, "username");
-    std::string password = getParam(req, "password");
-    std::string type = getParam(req, "type");
+    std::string username = req.GetParam("username");
+    std::string password = req.GetParam("password");
+    std::string type = req.GetParam("type");
     uint64_t id = 0;
     if (type == "Player")
     {
@@ -66,10 +55,10 @@ void checkUser(const std::string& req, std::string& res)
     res = std::to_string(id);
 }
 
-void getUser(const std::string& req, std::string& res)
+void getUser(const Request& req, std::string& res)
 {
-    std::string id = getParam(req, "id");
-    std::string type = getParam(req, "type");
+    std::string id = req.GetParam("id");
+    std::string type = req.GetParam("type");
     if (type == "Player")
     {
         Player player;
@@ -84,21 +73,21 @@ void getUser(const std::string& req, std::string& res)
     }
 }
 
-void updateUser(const std::string& req, std::string& res)
+void updateUser(const Request& req, std::string& res)
 {
-    std::string id = getParam(req, "id");
-    std::string name = getParam(req, "name");
-    std::string passwordHash = getParam(req, "passwordHash");
-    std::string type = getParam(req, "type");
+    std::string id = req.GetParam("id");
+    std::string name = req.GetParam("name");
+    std::string passwordHash = req.GetParam("passwordHash");
+    std::string type = req.GetParam("type");
     if (type == "Player")
     {
         Player player;
         player.SetId(std::stoull(id));
         player.SetName(name);
         player.SetPasswordHash(passwordHash);
-        player.SetPassNum(std::stoi(getParam(req, "passNum")));
-        player.SetScore(std::stoi(getParam(req, "score")));
-        player.SetLevel(std::stoi(getParam(req, "level")));
+        player.SetPassNum(std::stoi(req.GetParam("passNum")));
+        player.SetScore(std::stoi(req.GetParam("score")));
+        player.SetLevel(std::stoi(req.GetParam("level")));
         db::UpdateUser(player);
     }
     else if (type == "Maker")
@@ -107,18 +96,18 @@ void updateUser(const std::string& req, std::string& res)
         maker.SetId(std::stoull(id));
         maker.SetName(name);
         maker.SetPasswordHash(passwordHash);
-        maker.SetQuesNum(std::stoi(getParam(req, "quesNum")));
-        maker.SetLevel(std::stoi(getParam(req, "level")));
+        maker.SetQuesNum(std::stoi(req.GetParam("quesNum")));
+        maker.SetLevel(std::stoi(req.GetParam("level")));
         db::UpdateUser(maker);
     }
 }
 
-void fetchUsers(const std::string& req, std::string& res)
+void fetchUsers(const Request& req, std::string& res)
 {
-    std::string type = getParam(req, "type");
-    std::string sort = getParam(req, "sort");
-    std::string asc = getParam(req, "asc");
-    std::string filtersStr = getParam(req, "filters");
+    std::string type = req.GetParam("type");
+    std::string sort = req.GetParam("sort");
+    std::string asc = req.GetParam("asc");
+    std::string filtersStr = req.GetParam("filters");
     std::vector<std::string> filters;
     while (true)
     {
@@ -151,21 +140,21 @@ void fetchUsers(const std::string& req, std::string& res)
     }
 }
 
-void addWord(const std::string& req, std::string& res)
+void addWord(const Request& req, std::string& res)
 {
-    std::string word = getParam(req, "word");
-    std::string level = getParam(req, "level");
-    std::string makerId = getParam(req, "makerId");
+    std::string word = req.GetParam("word");
+    std::string level = req.GetParam("level");
+    std::string makerId = req.GetParam("makerId");
     db::AddWord(word, std::stoi(level), std::stoull(makerId));
 }
 
-void deleteWord(const std::string& req, std::string& res)
+void deleteWord(const Request& req, std::string& res)
 {
-    std::string id = getParam(req, "id");
+    std::string id = req.GetParam("id");
     db::DeleteWord(std::stoull(id));
 }
 
-void fetchWords(const std::string& req, std::string& res)
+void fetchWords(const Request& req, std::string& res)
 {
     std::vector<Word> records;
     db::FetchWords(records);
@@ -175,10 +164,10 @@ void fetchWords(const std::string& req, std::string& res)
     }
 }
 
-void getRandomWords(const std::string& req, std::string& res)
+void getRandomWords(const Request& req, std::string& res)
 {
-    std::string level = getParam(req, "level");
-    std::string num = getParam(req, "num");
+    std::string level = req.GetParam("level");
+    std::string num = req.GetParam("num");
     std::vector<std::string> records;
     db::GetRandomWords(records, std::stoi(level), std::stoi(num));
     for (auto& record : records)
@@ -187,10 +176,21 @@ void getRandomWords(const std::string& req, std::string& res)
     }
 }
 
+const std::map<std::string, std::function<void(const Request&, std::string&)>> ACTION_MAP = {
+    {"AddUser",addUser},
+    {"CheckUser",checkUser},
+    {"GetUser",getUser},
+    {"UpdateUser",updateUser},
+    {"FetchUsers",fetchUsers},
+    {"AddWord",addWord},
+    {"DeleteWord",deleteWord},
+    {"FetchWords",fetchWords},
+    {"GetRandomWords",getRandomWords}
+};
 
 void handle(const SOCKET clientSocket)
 {
-    std::string req;
+    std::string reqStr;
     while (true)
     {
         char recvdata[256];
@@ -199,55 +199,44 @@ void handle(const SOCKET clientSocket)
         {
             if (recvdata[num - 1] == '\0')
             {
-                req += std::string(recvdata, num - 1);
+                reqStr += std::string(recvdata, num - 1);
                 break;
             }
-            req += std::string(recvdata, num);
+            reqStr += std::string(recvdata, num);
         }
     }
     std::string res;
-    std::cout << "req: " << req << std::endl;
-    std::string action = req.substr(0, req.find("?"));
-    if (action == "AddUser")
+    std::cout << "reqStr: " << reqStr << std::endl;
+    size_t pos1 = reqStr.find("\n");
+    std::string cmd = reqStr.substr(0, pos1);
+    std::string action = reqStr.substr(0, cmd.find("?"));
+
+    uint64_t id = 0;
+    UserRole role = UserRole::None;
+
+    size_t pos2 = reqStr.find("\n", pos1 + 1);
+    if (pos2 != std::string::npos)
     {
-        addUser(req, res);
+        std::string auth = reqStr.substr(pos1 + 1, pos2 - pos1 - 1);
+        size_t pos3 = auth.find(":");
+
+        if (pos3 != std::string::npos)
+        {
+            role = static_cast<UserRole>(std::stoi(auth.substr(0, pos3)));
+            id = std::stoull(auth.substr(pos3 + 1));
+        }
     }
-    else if (action == "CheckUser")
+
+    Request req(cmd, role, id);
+    auto fun = ACTION_MAP.find(action);
+    if (fun != ACTION_MAP.end())
     {
-        checkUser(req, res);
-    }
-    else if (action == "GetUser")
-    {
-        getUser(req, res);
-    }
-    else if (action == "UpdateUser")
-    {
-        updateUser(req, res);
-    }
-    else if (action == "FetchUsers")
-    {
-        fetchUsers(req, res);
-    }
-    else if (action == "AddWord")
-    {
-        addWord(req, res);
-    }
-    else if (action == "DeleteWord")
-    {
-        deleteWord(req, res);
-    }
-    else if (action == "FetchWords")
-    {
-        fetchWords(req, res);
-    }
-    else if (action == "GetRandomWords")
-    {
-        getRandomWords(req, res);
+        fun->second(req, res);
     }
     else
     {
+        std::cout << "action not found: " << action << std::endl;
         res = "";
-        std::cout << "Unknown action: " << action << std::endl;
     }
 
     std::cout << "res: " << res << std::endl;

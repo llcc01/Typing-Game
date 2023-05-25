@@ -1,13 +1,45 @@
 #include "rpc/client.hpp"
 #include <winsock2.h>
-#pragma comment(lib,"ws2_32.lib")
+#include <mutex>
+// #pragma comment(lib,"ws2_32.lib")
 
 const std::string IP_ADDR = "127.0.0.1";
 const uint16_t PORT = 12345;
 
 namespace rpc::client
 {
-uint8_t request(const std::string& ipAdrr, uint16_t port, const std::string& req, std::string& res)
+
+Session* Session::instance_ = nullptr;
+std::mutex Session::mutex_;
+
+Session& Session::GetInstance()
+{
+    if (instance_ == nullptr)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (instance_ == nullptr)
+        {
+            instance_ = new Session();
+        }
+    }
+    return *instance_;
+}
+
+void Session::DestroyInstance()
+{
+    if (instance_ != nullptr)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (instance_ != nullptr)
+        {
+            delete instance_;
+            instance_ = nullptr;
+        }
+    }
+}
+
+
+uint8_t request(const std::string& ipAdrr, uint16_t port, const std::string& cmd, std::string& res)
 {
     SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (clientSocket == INVALID_SOCKET) {
@@ -21,7 +53,9 @@ uint8_t request(const std::string& ipAdrr, uint16_t port, const std::string& req
         return 1;
     }
 
-    send(clientSocket, req.c_str(), req.size() + 1, 0);
+    std::string reqStr = cmd + "\n" + std::to_string(uint16_t(Session::GetRole())) + ":" + std::to_string(Session::GetUid()) + "\n";
+
+    send(clientSocket, reqStr.c_str(), reqStr.size() + 1, 0);
 
     while (true)
     {

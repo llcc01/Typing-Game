@@ -31,6 +31,7 @@ int main(void)
     UserRole urole = UserRole::None;
     while (view::login::Loop(screen, uid, urole))
     {
+        Session::Start(urole, uid);
         switch (urole)
         {
         case UserRole::Player:
@@ -58,6 +59,7 @@ int main(void)
         default:
             break;
         }
+        Session::End();
     }
 
 
@@ -65,6 +67,7 @@ int main(void)
     // view::maker::Loop(screen, user);
 
     // Database::DestroyInstance();
+    Session::DestroyInstance();
 
     return EXIT_SUCCESS;
 }
