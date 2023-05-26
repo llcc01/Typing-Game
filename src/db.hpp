@@ -30,7 +30,7 @@ namespace orm = sqlite_orm;
     ),\
     orm::make_table("words",\
         orm::make_column("id", &Word::GetId, &Word::SetId, orm::primary_key().autoincrement()),\
-        orm::make_column("word", &Word::GetWord, &Word::SetWord),\
+        orm::make_column("word", &Word::GetWord, &Word::SetWord, orm::unique()),\
         orm::make_column("level", &Word::GetLevel, &Word::SetLevel),\
         orm::make_column("maker_id", &Word::GetMakerId, &Word::SetMakerId)\
     )\
