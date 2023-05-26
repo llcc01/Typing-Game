@@ -3,6 +3,7 @@
 
 #include "utils/md5.h"
 
+const std::string PASSWORD_SALT = "typing-game-2023";
 
 Database* Database::instance_ = nullptr;
 std::mutex Database::mutex_;
@@ -36,9 +37,14 @@ void Database::DestroyInstance()
 namespace db
 {
 
+inline std::string getPasswordHash(const std::string& password)
+{
+    return utils::md5(utils::md5(password) + PASSWORD_SALT);
+}
+
 uint64_t AddUser(const std::string& username, const std::string& password, UserRole type)
 {
-    std::string passwordHash = utils::md5(password);
+    std::string passwordHash = getPasswordHash(password);
     switch (type)
     {
     case UserRole::Player:
@@ -62,7 +68,7 @@ uint64_t AddUser(const std::string& username, const std::string& password, UserR
 
 uint64_t CheckUser(const std::string& username, const std::string& password, UserRole type)
 {
-    std::string passwordHash = utils::md5(password);
+    std::string passwordHash = getPasswordHash(password);
     switch (type)
     {
     case UserRole::Player:
