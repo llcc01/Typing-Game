@@ -44,6 +44,7 @@ set(CLIENT_SRC
 
   src/rpc/rpc.cpp
   src/rpc/client.cpp
+  src/rpc/p2p.cpp
 )
 
 set(SERVER_SRC

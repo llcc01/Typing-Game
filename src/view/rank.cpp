@@ -1,3 +1,5 @@
+#include "utils/string.h"
+
 #include "view/rank.hpp"
 // #include "db.hpp"
 #include "rpc/client.hpp"
@@ -13,8 +15,9 @@ void records2rows(const std::vector<Player>& players, std::vector<std::string>& 
     for (auto& player : players)
     {
         char row[128];
-        std::snprintf(row, sizeof(row), "%5.1d │ %16.16s │ %7.1d │ %7.1d │ %7.1d │",
-            player.GetId(), player.GetName().c_str(), player.GetScore(), player.GetLevel(), player.GetPassNum()
+
+        std::snprintf(row, sizeof(row), "%5.1d │ %16.16s │ %7.1d │ %7.1d │ %7.1d │ %s |",
+            player.GetId(), player.GetName().c_str(), player.GetScore(), player.GetLevel(), player.GetPassNum(), utils::TimeToString(player.GetLastActiveTime()).c_str()
         );
         rows.push_back(row);
     }
@@ -34,8 +37,9 @@ void records2rows(const std::vector<Maker>& makers, std::vector<std::string>& ro
 }
 
 
-void Loop(ui::ScreenInteractive& screen)
+uint64_t Loop(ui::ScreenInteractive& screen)
 {
+    uint64_t peerId = 0;
 
     std::vector<Player> players;
     std::vector<Maker> makers;
@@ -103,6 +107,7 @@ void Loop(ui::ScreenInteractive& screen)
             "s",
             "l",
             "p",
+            "t",
             };
             const std::vector<std::string> makerKeymap = {
                 "i",
@@ -132,6 +137,13 @@ void Loop(ui::ScreenInteractive& screen)
 
                 return true;
             }
+
+            if (e == ui::Event::Return && tabSelected == 0)
+            {
+                peerId = players[rowSelected].GetId();
+                screen.ExitLoopClosure()();
+                return true;
+            }
         }
 
         return false;
@@ -146,7 +158,8 @@ void Loop(ui::ScreenInteractive& screen)
                 {"姓名(n)", 16 + 2},
                 {"经验(s)", 7 + 2},
                 {"等级(l)", 7 + 2},
-                {"通关(p)", 7 + 2}
+                {"通关(p)", 7 + 2},
+                {"最近在线(t)", 16 + 2}
         };
         const std::vector <std::pair<std::string, int> > makerCols = {
                 {"ID(i)", 5 + 3},
@@ -264,6 +277,8 @@ void Loop(ui::ScreenInteractive& screen)
 
 
     screen.Loop(renderer);
+
+    return peerId;
 }
 
 } // namespace view::rank

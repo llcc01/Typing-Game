@@ -181,6 +181,9 @@ void FetchUsers(std::vector<Player>& records, int sort, bool asc, const std::vec
     case 4:
         records = Database::GetInstance().GetAll<Player>(&Player::GetPassNum, asc);
         break;
+    case 5:
+        records = Database::GetInstance().GetAll<Player>(&Player::GetLastActiveTime, asc);
+        break;
     default:
         break;
     }

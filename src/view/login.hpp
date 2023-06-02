@@ -7,7 +7,7 @@
 namespace view::login
 {
 
-bool Loop(ui::ScreenInteractive& screen, uint64_t& uid, UserRole& urole);
+bool Loop(ui::ScreenInteractive& screen, uint64_t& uid, UserRole& urole, uint64_t& peerId);
 
 } // namespace view::login
 

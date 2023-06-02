@@ -10,8 +10,7 @@ namespace rpc
 
 uint8_t Setup();
 
-namespace server
-{
+
 class Request
 {
 private:
@@ -26,8 +25,6 @@ public:
     UserRole GetRole() const { return role; }
     uint64_t GetUserId() const { return userId; }
 };
-
-} // namespace server
 
 } // namespace rpc
 

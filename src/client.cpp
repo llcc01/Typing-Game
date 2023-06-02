@@ -28,8 +28,9 @@ int main(void)
     auto screen = ftxui::ScreenInteractive::Fullscreen();
     // view::player::Loop(screen, player);
     uint64_t uid = 0;
+    uint64_t peerId = 0;
     UserRole urole = UserRole::None;
-    while (view::login::Loop(screen, uid, urole))
+    while (view::login::Loop(screen, uid, urole, peerId))
     {
         Session::Start(urole, uid);
         switch (urole)
@@ -38,8 +39,9 @@ int main(void)
         {
             Player player;
             db::GetUser(player, uid);
-            view::player::Loop(screen, player);
+            view::player::Loop(screen, player, peerId);
             db::UpdateUser(player);
+            peerId = 0;
             break;
         }
         case UserRole::Maker:
@@ -48,15 +50,17 @@ int main(void)
             db::GetUser(maker, uid);
             view::maker::Loop(screen, maker);
             db::UpdateUser(maker);
+            peerId = 0;
             break;
         }
         case UserRole::Rank:
         {
-            view::rank::Loop(screen);
+            peerId = view::rank::Loop(screen);
             break;
         }
 
         default:
+            peerId = 0;
             break;
         }
         Session::End();

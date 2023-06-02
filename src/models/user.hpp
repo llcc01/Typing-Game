@@ -36,12 +36,33 @@ public:
     virtual void FromString(const std::string& str) = 0;
 };
 
+class ClientInfo
+{
+private:
+    time_t lastActiveTime_; // 最后活跃时间
+    std::string ip_;
+    uint16_t port_;
+public:
+    ClientInfo() { lastActiveTime_ = 0; ip_ = ""; port_ = 0; };
+    ClientInfo(const std::string& ip, uint16_t port) : ip_(ip), port_(port) {};
+
+    time_t GetLastActiveTime() const { return lastActiveTime_; };
+    void SetLastActiveTime(time_t lastActiveTime) { lastActiveTime_ = lastActiveTime; };
+
+    std::string GetIp() const { return ip_; };
+    void SetIp(const std::string& ip) { ip_ = ip; };
+
+    uint16_t GetRxPort() const { return port_; };
+    void SetRxPort(uint16_t port) { port_ = port; };
+};
+
 class Player : public User
 {
 private:
     uint16_t passNum_; // 通关数
     uint32_t score_; // 经验值
     uint32_t level_; // 等级
+    ClientInfo clientInfo_; // 客户端信息
 public:
     Player() { passNum_ = 0; score_ = 0; level_ = 0; };
     Player(uint64_t id) : User(id), passNum_(0), score_(0), level_(0) {};
@@ -68,6 +89,15 @@ public:
     uint32_t GetLevel() const { return level_; };
     void SetLevel(uint32_t level) { level_ = level; };
 
+    time_t GetLastActiveTime() const { return clientInfo_.GetLastActiveTime(); };
+    void SetLastActiveTime(time_t lastActiveTime) { clientInfo_.SetLastActiveTime(lastActiveTime); };
+
+    std::string GetIp() const { return clientInfo_.GetIp(); };
+    void SetIp(const std::string& ip) { clientInfo_.SetIp(ip); };
+
+    uint16_t GetRxPort() const { return clientInfo_.GetRxPort(); };
+    void SetRxPort(uint16_t port) { clientInfo_.SetRxPort(port); };
+
     void FromString(const std::string& str)
     {
         std::string::size_type pos = str.find('\t');
@@ -80,9 +110,26 @@ public:
         SetPassNum(std::stoi(str.substr(pos3 + 1, pos4 - pos3 - 1)));
         std::string::size_type pos5 = str.find('\t', pos4 + 1);
         SetScore(std::stoi(str.substr(pos4 + 1, pos5 - pos4 - 1)));
-        SetLevel(std::stoi(str.substr(pos5 + 1)));
+        std::string::size_type pos6 = str.find('\t', pos5 + 1);
+        SetLevel(std::stoi(str.substr(pos5 + 1, pos6 - pos5 - 1)));
+        std::string::size_type pos7 = str.find('\t', pos6 + 1);
+        clientInfo_.SetLastActiveTime(std::stoi(str.substr(pos6 + 1, pos7 - pos6 - 1)));
+        std::string::size_type pos8 = str.find('\t', pos7 + 1);
+        clientInfo_.SetIp(str.substr(pos7 + 1, pos8 - pos7 - 1));
+        clientInfo_.SetRxPort(std::stoi(str.substr(pos8 + 1)));
     };
-    std::string ToString() const { return std::to_string(GetId()) + "\t" + GetName() + "\t" + GetPasswordHash() + "\t" + std::to_string(GetPassNum()) + "\t" + std::to_string(GetScore()) + "\t" + std::to_string(GetLevel()); };
+    std::string ToString() const {
+        return std::to_string(GetId()) + "\t"
+            + GetName() + "\t"
+            + GetPasswordHash()
+            + "\t" + std::to_string(GetPassNum())
+            + "\t" + std::to_string(GetScore())
+            + "\t" + std::to_string(GetLevel())
+            + "\t" + std::to_string(GetLastActiveTime())
+            + "\t" + GetIp()
+            + "\t" + std::to_string(GetRxPort())
+            ;
+    };
 
 };
 

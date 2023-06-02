@@ -15,8 +15,7 @@ uint8_t Setup()
     return 0;
 }
 
-namespace server
-{
+
 Request::Request(const std::string& cmd, const UserRole& role, const uint64_t& userId) : role(role), userId(userId)
 {
     std::string::size_type pos = cmd.find("?");
@@ -51,7 +50,7 @@ Request::Request(const std::string& cmd, const UserRole& role, const uint64_t& u
         action = cmd;
     }
 }
-} // namespace server
+
 
 
 } // namespace rpc

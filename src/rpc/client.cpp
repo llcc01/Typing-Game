@@ -109,7 +109,7 @@ void UpdateUser(const Player& user)
 {
     std::string req = "UpdateUser?type=Player&id=" + std::to_string(user.GetId()) + "&name=" + user.GetName() + "&passwordHash="
         + user.GetPasswordHash() + "&passNum=" + std::to_string(user.GetPassNum()) + "&score=" + std::to_string(user.GetScore())
-        + "&level=" + std::to_string(user.GetLevel());
+        + "&level=" + std::to_string(user.GetLevel()) + "&port=" + std::to_string(user.GetRxPort());
     std::string res;
     request(IP_ADDR, PORT, req, res);
 }
@@ -185,6 +185,10 @@ void AddWord(const std::string& word, uint32_t level, uint64_t makerId)
     std::string req = "AddWord?word=" + word + "&level=" + std::to_string(level) + "&makerId=" + std::to_string(makerId);
     std::string res;
     request(IP_ADDR, PORT, req, res);
+    if (res != "")
+    {
+        throw std::runtime_error(res);
+    }
 }
 
 void DeleteWord(uint64_t id)

@@ -90,6 +90,7 @@
         "xtr1common": "cpp",
         "xutility": "cpp",
         "cinttypes": "cpp",
-        "any": "cpp"
+        "any": "cpp",
+        "xtree": "cpp"
     }
 }

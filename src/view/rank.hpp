@@ -6,7 +6,7 @@
 namespace view::rank
 {
 
-void Loop(ui::ScreenInteractive& screen);
+uint64_t Loop(ui::ScreenInteractive& screen);
 
 }
 

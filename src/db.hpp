@@ -15,11 +15,14 @@ namespace orm = sqlite_orm;
 #define DB_MK_STR() orm::make_storage("db.sqlite",\
     orm::make_table("players",\
         orm::make_column("id", &Player::DBGetId, &Player::DBSetId, orm::primary_key().autoincrement()),\
-        orm::make_column("name", &Player::DBGetName, &Player::DBSetName),\
+        orm::make_column("name", &Player::DBGetName, &Player::DBSetName, orm::unique()),\
         orm::make_column("password_hash", &Player::DBGetPasswordHash, &Player::DBSetPasswordHash),\
         orm::make_column("pass_num", &Player::GetPassNum, &Player::SetPassNum),\
         orm::make_column("score", &Player::GetScore, &Player::SetScore),\
-        orm::make_column("level", &Player::GetLevel, &Player::SetLevel)\
+        orm::make_column("level", &Player::GetLevel, &Player::SetLevel),\
+        orm::make_column("last_active_time", &Player::GetLastActiveTime, &Player::SetLastActiveTime),\
+        orm::make_column("ip", &Player::GetIp, &Player::SetIp),\
+        orm::make_column("port", &Player::GetRxPort, &Player::SetRxPort)\
     ),\
     orm::make_table("makers",\
         orm::make_column("id", &Maker::DBGetId, &Maker::DBSetId, orm::primary_key().autoincrement()),\

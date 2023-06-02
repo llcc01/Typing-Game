@@ -7,7 +7,7 @@ namespace view::login
 
 using namespace rpc::client;
 
-bool Loop(ui::ScreenInteractive& screen, uint64_t& uid, UserRole& urole)
+bool Loop(ui::ScreenInteractive& screen, uint64_t& uid, UserRole& urole, uint64_t& peerId)
 {
     uid = 0;
     urole = UserRole::None;
@@ -75,8 +75,11 @@ bool Loop(ui::ScreenInteractive& screen, uint64_t& uid, UserRole& urole)
         screen.ExitLoopClosure()();
         }, ui::ButtonOption::Animated(ui::Color::LightCoral));
 
-    auto component = ui::Container::Vertical({ uiInputName, uiInputPassword, uiRadioRole, buttonLogin, buttonSignup, buttonRank });
+    auto buttonCleanPeer = ui::Button(L"清除对手", [&] {
+        peerId = 0;
+        }, ui::ButtonOption::Animated(ui::Color::Pink1));
 
+    auto component = ui::Container::Vertical({ uiInputName, uiInputPassword, uiRadioRole, buttonLogin, buttonSignup, buttonRank, buttonCleanPeer });
 
     auto renderer = ui::Renderer(component, [&] {
         auto document = ui::vbox({
@@ -103,10 +106,13 @@ bool Loop(ui::ScreenInteractive& screen, uint64_t& uid, UserRole& urole)
                 uiRadioRole->Render() ,
             }) | ui::border,
 
+            ui::text(peerId != 0 ? "玩家对手ID: " + std::to_string(peerId) : "单人玩家模式") | ui::center | ui::bold,
+
             ui::hbox({
                 buttonLogin->Render() | ui::center,
                 buttonSignup->Render() | ui::center,
                 buttonRank->Render() | ui::center,
+                buttonCleanPeer->Render() | ui::center,
             }) | ui::center,
 
             ui::text(msg) | ui::center | ui::color(ui::Color::Red),

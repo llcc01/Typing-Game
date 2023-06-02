@@ -22,16 +22,23 @@ void addUser(const Request& req, std::string& res)
     std::string password = req.GetParam("password");
     std::string type = req.GetParam("type");
     uint64_t id = 0;
-    if (type == "Player")
+    try
     {
-        id = db::AddUser(username, password, UserRole::Player);
+        if (type == "Player")
+        {
+            id = db::AddUser(username, password, UserRole::Player);
+        }
+        else if (type == "Maker")
+        {
+            id = db::AddUser(username, password, UserRole::Maker);
+        }
     }
-    else if (type == "Maker")
+    catch (const std::exception& e)
     {
-        id = db::AddUser(username, password, UserRole::Maker);
+        std::cerr << e.what() << '\n';
     }
-    res = std::to_string(id);
 
+    res = std::to_string(id);
 }
 
 void checkUser(const Request& req, std::string& res)
@@ -82,12 +89,13 @@ void updateUser(const Request& req, std::string& res)
     if (type == "Player")
     {
         Player player;
-        player.SetId(std::stoull(id));
+        db::GetUser(player, std::stoull(id));
         player.SetName(name);
         player.SetPasswordHash(passwordHash);
         player.SetPassNum(std::stoi(req.GetParam("passNum")));
         player.SetScore(std::stoi(req.GetParam("score")));
         player.SetLevel(std::stoi(req.GetParam("level")));
+        player.SetRxPort(std::stoi(req.GetParam("port")));
         db::UpdateUser(player);
     }
     else if (type == "Maker")
@@ -145,7 +153,15 @@ void addWord(const Request& req, std::string& res)
     std::string word = req.GetParam("word");
     std::string level = req.GetParam("level");
     std::string makerId = req.GetParam("makerId");
-    db::AddWord(word, std::stoi(level), std::stoull(makerId));
+    try
+    {
+        db::AddWord(word, std::stoi(level), std::stoull(makerId));
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        res = e.what();
+    }
 }
 
 void deleteWord(const Request& req, std::string& res)
@@ -188,7 +204,7 @@ const std::map<std::string, std::function<void(const Request&, std::string&)>> A
     {"GetRandomWords",getRandomWords}
 };
 
-void handle(const SOCKET clientSocket)
+void handle(const SOCKET clientSocket, const sockaddr_in clientAddr)
 {
     std::string reqStr;
     while (true)
@@ -224,6 +240,15 @@ void handle(const SOCKET clientSocket)
         {
             role = static_cast<UserRole>(std::stoi(auth.substr(0, pos3)));
             id = std::stoull(auth.substr(pos3 + 1));
+            if (role == UserRole::Player)
+            {
+                Player p;
+                db::GetUser(p, id);
+                p.SetLastActiveTime(time(nullptr));
+                p.SetIp(inet_ntoa(clientAddr.sin_addr));
+                db::UpdateUser(p);
+            }
+
         }
     }
 
@@ -270,7 +295,7 @@ uint8_t ServeForever(const std::string& ipAdrr, uint16_t port)
             continue;
         }
         std::cout << "New connection from " << inet_ntoa(clientAddr.sin_addr) << ":" << ntohs(clientAddr.sin_port) << std::endl;
-        std::thread(handle, clientSocket).detach();
+        std::thread(handle, clientSocket, clientAddr).detach();
     }
     closesocket(serverSocket);
     return 0;
