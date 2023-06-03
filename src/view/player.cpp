@@ -12,7 +12,7 @@
 #include "rpc/p2p.hpp"
 
 
-#define COUNTDOWN_MAX 200
+#define COUNTDOWN_MAX 100
 #define ONLINE_COUNTDOWN_MAX 100
 
 namespace view::player
@@ -68,6 +68,7 @@ void timerThread(ui::ScreenInteractive& screen, bool& countdownRunning, int16_t&
 void Loop(ui::ScreenInteractive& screen, Player& player, uint64_t peerId)
 {
     rpc::P2P p2p(0);
+    Player peer;
 
     std::string wordInput;
     std::string word = "Test";
@@ -85,7 +86,7 @@ void Loop(ui::ScreenInteractive& screen, Player& player, uint64_t peerId)
     int16_t count = 0;
     bool countRunning = false;
 
-    auto setNextWord = [&] {
+    auto setNextWord = [&](std::string newWord = "") {
         time = COUNTDOWN_MAX - player.GetPassNum() * 10;
         if (time < 10)
         {
@@ -93,14 +94,21 @@ void Loop(ui::ScreenInteractive& screen, Player& player, uint64_t peerId)
         }
         countdown = time;
         wordInput = "";
-        size_t num = db::GetRandomWords(wordList, player.GetPassNum(), 1);
-        if (num == 0)
+        if (newWord == "")
         {
-            word = "NoWord";
+            size_t num = db::GetRandomWords(wordList, player.GetPassNum(), 1);
+            if (num == 0)
+            {
+                word = "NoWord";
+            }
+            else
+            {
+                word = wordList[0];
+            }
         }
         else
         {
-            word = wordList[0];
+            word = newWord;
         }
         uiCanvas.Clear();
         uiCanvas.DrawString(0, 0, word, ui::Color::Red);
@@ -109,8 +117,21 @@ void Loop(ui::ScreenInteractive& screen, Player& player, uint64_t peerId)
         count = 0;
     };
 
-    Player peer;
+    auto selfPass = [&] {
+        db::GetUser(player, player.GetId());
+        player.SetPassNum(player.GetPassNum() + 1);
+        player.SetScore(player.GetScore() + player.GetPassNum() * 300 / count);
+        player.SetLevel(player.GetScore() / 100);
+        db::UpdateUser(player);
+        setNextWord();
+        p2p.Send(peer.GetIp(), peer.GetRxPort(), "pass?nextword=" + word, UserRole::Player, player.GetId());
+    };
 
+    auto peerPass = [&] {
+        auto req = p2p.GetRequest();
+        std::string nextWord = req->GetParam("nextword");
+        setNextWord(nextWord);
+    };
 
     if (peerId == 0)
     {
@@ -129,7 +150,7 @@ void Loop(ui::ScreenInteractive& screen, Player& player, uint64_t peerId)
         db::UpdateUser(player);
         p2p.Start();
         res = p2p.Send(peer.GetIp(), peer.GetRxPort(), "ping", UserRole::Player, player.GetId());
-        if(res < 0)
+        if (res < 0)
         {
             std::cerr << "p2p.Send() failed" << std::endl;
             return;
@@ -147,7 +168,7 @@ void Loop(ui::ScreenInteractive& screen, Player& player, uint64_t peerId)
             return "等待对手";
         }
 
-        return "对手在线";
+        return countdownRunning ? "对手在线" : "对手在线, 按回车开始";
     };
 
     auto renderer = ui::Renderer(component, [&] {
@@ -167,6 +188,18 @@ void Loop(ui::ScreenInteractive& screen, Player& player, uint64_t peerId)
                     if (req->GetAction() == "ping")
                     {
                         p2p.Send(peer.GetIp(), peer.GetRxPort(), "pong", UserRole::Player, player.GetId());
+                    }
+                    else if (req->GetAction() == "pass")
+                    {
+                        msg = "对手已通关";
+                        peerPass();
+                    }
+                    else if (req->GetAction() == "start")
+                    {
+                        msg = "对手开始游戏";
+                        word = req->GetParam("word");
+                        setNextWord(word);
+                        countdownRunning = true;
                     }
                 }
                 p2p.SetRxFlag(false);
@@ -223,10 +256,7 @@ void Loop(ui::ScreenInteractive& screen, Player& player, uint64_t peerId)
         }
         else if (wordInput == word)
         {
-            player.SetPassNum(player.GetPassNum() + 1);
-            player.SetScore(player.GetScore() + player.GetPassNum() * 300 / count);
-            player.SetLevel(player.GetScore() / 100);
-            setNextWord();
+            selfPass();
         }
 
         document = document | ui::border;
@@ -241,6 +271,15 @@ void Loop(ui::ScreenInteractive& screen, Player& player, uint64_t peerId)
                 uiCanvas.Clear();
             }
             timePercent = (float)countdown / time;
+        }
+        else if (event == ui::Event::Return)
+        {
+            if (!countdownRunning)
+            {
+                setNextWord();
+                p2p.Send(peer.GetIp(), peer.GetRxPort(), "start?word=" + word, UserRole::Player, player.GetId());
+                countdownRunning = true;
+            }
         }
         return false;
         });
