@@ -87,7 +87,11 @@ void Loop(ui::ScreenInteractive& screen, Player& player, uint64_t peerId)
     bool countRunning = false;
 
     auto setNextWord = [&](std::string newWord = "") {
-        time = COUNTDOWN_MAX - player.GetPassNum() * 10;
+        time = COUNTDOWN_MAX;
+        if (peerId == 0)
+        {
+            time -= player.GetPassNum() * 10;
+        }
         if (time < 10)
         {
             time = 10;
