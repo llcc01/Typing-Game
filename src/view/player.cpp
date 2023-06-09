@@ -69,6 +69,7 @@ void Loop(ui::ScreenInteractive& screen, Player& player, uint64_t peerId)
 {
     rpc::P2P p2p(0);
     Player peer;
+    uint32_t passLevel = 1; // 双人模式下，当前关卡
 
     std::string wordInput;
     std::string word = "Test";
@@ -88,10 +89,7 @@ void Loop(ui::ScreenInteractive& screen, Player& player, uint64_t peerId)
 
     auto setNextWord = [&](std::string newWord = "") {
         time = COUNTDOWN_MAX;
-        if (peerId == 0)
-        {
-            time -= player.GetPassNum() * 10;
-        }
+        time -= passLevel * 10;
         if (time < 10)
         {
             time = 10;
@@ -100,7 +98,7 @@ void Loop(ui::ScreenInteractive& screen, Player& player, uint64_t peerId)
         wordInput = "";
         if (newWord == "")
         {
-            size_t num = db::GetRandomWords(wordList, player.GetPassNum(), 1);
+            size_t num = db::GetRandomWords(wordList, passLevel, 1);
             if (num == 0)
             {
                 word = "NoWord";
@@ -124,21 +122,40 @@ void Loop(ui::ScreenInteractive& screen, Player& player, uint64_t peerId)
     auto selfPass = [&] {
         db::GetUser(player, player.GetId());
         player.SetPassNum(player.GetPassNum() + 1);
-        player.SetScore(player.GetScore() + player.GetPassNum() * 300 / count);
+        uint32_t addedScore = passLevel * 300 / count;
+        if (peerId != 0)
+        {
+            addedScore *= 2;
+        }
+        player.SetScore(player.GetScore() + addedScore);
         player.SetLevel(player.GetScore() / 100);
         db::UpdateUser(player);
+        passLevel++;
         setNextWord();
         p2p.Send(peer.GetIp(), peer.GetRxPort(), "pass?nextword=" + word, UserRole::Player, player.GetId());
     };
 
     auto peerPass = [&] {
+        db::GetUser(player, player.GetId());
+        if (player.GetScore() < 100)
+        {
+            player.SetScore(0);
+        }
+        else
+        {
+            player.SetScore(player.GetScore() - 100);
+        }
+        player.SetLevel(player.GetScore() / 100);
+        db::UpdateUser(player);
         auto req = p2p.GetRequest();
         std::string nextWord = req->GetParam("nextword");
+        passLevel++;
         setNextWord(nextWord);
     };
 
     if (peerId == 0)
     {
+        passLevel = player.GetPassNum();
         setNextWord();
     }
     else
@@ -177,6 +194,9 @@ void Loop(ui::ScreenInteractive& screen, Player& player, uint64_t peerId)
 
     auto renderer = ui::Renderer(component, [&] {
         std::string msg = getMsg();
+        msg += "，当前关卡：";
+        msg += std::to_string(passLevel);
+
         if (peerId != 0)
         {
             if (p2p.GetRxFlag())
@@ -201,6 +221,8 @@ void Loop(ui::ScreenInteractive& screen, Player& player, uint64_t peerId)
                     else if (req->GetAction() == "start")
                     {
                         msg = "对手开始游戏";
+                        db::GetUser(peer, peerId);
+                        passLevel = peer.GetPassNum();
                         word = req->GetParam("word");
                         setNextWord(word);
                         countdownRunning = true;
@@ -229,7 +251,7 @@ void Loop(ui::ScreenInteractive& screen, Player& player, uint64_t peerId)
                 ui::separator(),
                 ui::text(L"用时: " + std::to_wstring(count / 10) + L"s") | size(ui::WIDTH, ui::EQUAL, 15),
                 ui::separator(),
-                ui::text(L"对手ID: " + std::to_wstring(peerId)) | size(ui::WIDTH, ui::EQUAL, 15),
+                ui::text(peerId == 0 ? std::wstring(L"单人模式") : (std::wstring(L"对手ID: ") + std::to_wstring(peerId))) | size(ui::WIDTH, ui::EQUAL, 15),
             }),
 
             ui::separator(),
@@ -280,6 +302,8 @@ void Loop(ui::ScreenInteractive& screen, Player& player, uint64_t peerId)
         {
             if (!countdownRunning)
             {
+                db::GetUser(player, player.GetId());
+                passLevel = player.GetPassNum();
                 setNextWord();
                 p2p.Send(peer.GetIp(), peer.GetRxPort(), "start?word=" + word, UserRole::Player, player.GetId());
                 countdownRunning = true;
@@ -297,6 +321,10 @@ void Loop(ui::ScreenInteractive& screen, Player& player, uint64_t peerId)
 
     screen.Loop(renderer);
     timerRunning = false;
+    if (peerId != 0)
+    {
+        p2p.Stop();
+    }
 }
 
 

@@ -20,7 +20,7 @@ using namespace rpc::client;
 
 int main(void)
 {
-    if(rpc::Setup())
+    if (rpc::Setup())
     {
         std::cout << "rpc::Setup() failed" << std::endl;
         return 1;
@@ -30,6 +30,16 @@ int main(void)
     uint64_t uid = 0;
     uint64_t peerId = 0;
     UserRole urole = UserRole::None;
+    // while (1)
+    // {
+    //     uid = 1;
+    //     peerId = 2;
+    //     Player player;
+    //     db::GetUser(player, uid);
+    //     view::player::Loop(screen, player, peerId);
+    //     db::UpdateUser(player);
+    // }
+
     while (view::login::Loop(screen, uid, urole, peerId))
     {
         Session::Start(urole, uid);

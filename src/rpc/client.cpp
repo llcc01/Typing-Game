@@ -200,6 +200,7 @@ void DeleteWord(uint64_t id)
 
 void FetchWords(std::vector<Word>& records)
 {
+    records.clear();
     std::string req = "FetchWords";
     std::string res;
     request(IP_ADDR, PORT, req, res);

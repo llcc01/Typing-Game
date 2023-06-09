@@ -112,6 +112,7 @@ void Loop(ui::ScreenInteractive& screen, Maker& maker)
 
 
     auto renderer = ui::Renderer(component, [&] {
+        level = std::to_string(word.length());
         auto document = ui::vbox({
             ui::text(L"出题") | ui::center | ui::bold,
 

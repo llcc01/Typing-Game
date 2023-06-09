@@ -26,7 +26,7 @@ namespace orm = sqlite_orm;
     ),\
     orm::make_table("makers",\
         orm::make_column("id", &Maker::DBGetId, &Maker::DBSetId, orm::primary_key().autoincrement()),\
-        orm::make_column("name", &Maker::DBGetName, &Maker::DBSetName),\
+        orm::make_column("name", &Maker::DBGetName, &Maker::DBSetName, orm::unique()),\
         orm::make_column("password_hash", &Maker::DBGetPasswordHash, &Maker::DBSetPasswordHash),\
         orm::make_column("ques_num", &Maker::GetQuesNum, &Maker::SetQuesNum),\
         orm::make_column("level", &Maker::GetLevel, &Maker::SetLevel)\

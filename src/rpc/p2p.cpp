@@ -54,13 +54,17 @@ void P2P::loop()
         }
         int len = sizeof(clientAddr);
         int n = recvfrom(udpSocket_, buf, sizeof(buf), 0, (sockaddr*)&clientAddr, &len);
+        if (n <= 0)
+        {
+            continue;
+        }
 
         std::string reqStr(buf, n);
 
         // std::cout << "reqStr: " << reqStr << std::endl;
         size_t pos1 = reqStr.find("\n");
         std::string cmd = reqStr.substr(0, pos1);
-        std::string action = reqStr.substr(0, cmd.find("?"));
+        std::string action = cmd.substr(0, cmd.find("?"));
 
         uint64_t id = 0;
         UserRole role = UserRole::None;
@@ -85,8 +89,6 @@ void P2P::loop()
             }
         }
     }
-    closesocket(udpSocket_);
-    WSACleanup();
 }
 
 int P2P::Send(const std::string& ipAddr, const uint16_t& port, const std::string& cmd, const UserRole& role, const uint64_t& userId)
@@ -107,6 +109,7 @@ void P2P::Start()
 
 void P2P::Stop()
 {
+    closesocket(udpSocket_);
     running_ = false;
 }
 

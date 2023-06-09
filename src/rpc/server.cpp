@@ -225,7 +225,7 @@ void handle(const SOCKET clientSocket, const sockaddr_in clientAddr)
     std::cout << "reqStr: " << reqStr << std::endl;
     size_t pos1 = reqStr.find("\n");
     std::string cmd = reqStr.substr(0, pos1);
-    std::string action = reqStr.substr(0, cmd.find("?"));
+    std::string action = cmd.substr(0, cmd.find("?"));
 
     uint64_t id = 0;
     UserRole role = UserRole::None;
